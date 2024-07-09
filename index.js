@@ -3,15 +3,10 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import appRouter from "./utils/appRouter.js";
 import expressListEndpoints from "express-list-endpoints";
-import Kafka from "node-rdkafka";
 import soap from "soap";
-import {
-  PORT,
-  SOAP_URL,
-  KAFKA_BROKER,
-  KAFKA_TOPIC,
-  KAFKA_GROUP_ID,
-} from "./config/dev.js";
+import { errorHandler } from "./middleware/errorMiddleware.js";
+import { PORT, SOAP_URL } from "./config/dev.js";
+import KafkaConsumer from "./services/kafkaService.js";
 
 const app = express();
 
@@ -26,39 +21,21 @@ app.use(
     limit: "5mb",
   })
 );
+app.use(errorHandler);
 
 let server = null;
 let consumer = null;
 let soapClient = null;
 
-function initKafkaConsumer() {
-  return new Promise((resolve, reject) => {
-    const consumer = new Kafka.KafkaConsumer(
-      {
-        "group.id": KAFKA_GROUP_ID,
-        "metadata.broker.list": KAFKA_BROKER,
-      },
-      {}
-    );
-
-    consumer.connect();
-
-    consumer.on("ready", () => {
-      console.log("Kafka consumer ready");
-      consumer.subscribe([KAFKA_TOPIC]);
-      consumer.consume();
-      resolve(consumer);
-    });
-
-    consumer.on("data", (data) => {
-      // devo fare qualcosa con i dati ricevuti
-    });
-
-    consumer.on("event.error", (err) => {
-      console.error("Error from consumer", err);
-      reject(err);
-    });
-  });
+async function initKafkaConsumer() {
+  try {
+    consumer = new KafkaConsumer();
+    await consumer.init();
+    console.log("Kafka consumer initialized and started");
+  } catch (error) {
+    console.error("Failed to initialize Kafka consumer", { error });
+    throw error;
+  }
 }
 
 async function initSoapClient() {
@@ -66,6 +43,13 @@ async function initSoapClient() {
     soapClient = await soap.createClientAsync(SOAP_URL, {
       forceSoap12Headers: false,
     });
+
+    const description = soapClient.describe();
+
+    console.log(
+      "SOAP service description:",
+      JSON.stringify(description, null, 2)
+    );
 
     console.log("SOAP client initialized");
   } catch (error) {

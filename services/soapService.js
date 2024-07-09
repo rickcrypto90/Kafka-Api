@@ -5,6 +5,13 @@ class SoapService {
     this.soapClient = soapClient;
   }
 
+  async getAvailableMethods() {
+    if (!this.soapClient) {
+      throw new Error("No SOAP client");
+    }
+    return this.soapClient.describe();
+  }
+
   async callSoapMethod(methodName, args) {
     if (!this.soapClient) {
       throw new Error("No SOAP client");
