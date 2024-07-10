@@ -4,9 +4,6 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start:product": "nodemon microservices/product-service/index.js",
-    "start:soap": "nodemon microservices/soap-service/index.js",
-    "start:gateway": "nodemon microservices/api-gateway/index.js",
     "start": "nodemon index.js"
   },
   "author": "",

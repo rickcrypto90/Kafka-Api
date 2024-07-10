@@ -3,7 +3,7 @@ import soapService from "../services/soapService.js";
 
 const router = express.Router();
 
-router.get("/methods", async (req, res) => {
+router.get("/methods", async (_, res) => {
   const methods = await soapService.getAvailableMethods();
   console.log("Available SOAP methods:", JSON.stringify(methods, null, 2));
   res.json(methods);

@@ -43,6 +43,7 @@ async function run() {
   const topic = "my-topic";
 
   await consumer.subscribe({ topic: topic, fromBeginning: true });
+  
   consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       if (!message.value) return;
