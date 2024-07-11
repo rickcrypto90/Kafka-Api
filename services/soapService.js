@@ -1,4 +1,6 @@
+import { SOAP_URL } from "../config/dev.js";
 import { soapClient } from "../index.js";
+import axios from "axios";
 
 class SoapService {
   constructor() {
@@ -16,15 +18,9 @@ class SoapService {
     if (!this.soapClient) {
       throw new Error("No SOAP client");
     }
-    return new Promise((resolve, reject) => {
-      this.soapClient[methodName](args, (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
-      });
-    });
+
+    const [result] = await this.soapClient[methodName + "Async"](args);
+    return result;
   }
 }
 

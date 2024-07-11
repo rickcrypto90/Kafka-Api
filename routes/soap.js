@@ -1,5 +1,7 @@
 import express from "express";
 import soapService from "../services/soapService.js";
+import { SOAP_URL } from "../config/dev.js";
+import axios from "axios";
 
 const router = express.Router();
 
@@ -11,23 +13,23 @@ router.get("/methods", async (_, res) => {
 
 router.post("/test", async (req, res, next) => {
   try {
-    const response = await soapService.callSoapMethod(
-      req.body.method,
-      req.body.args
-    );
-    res.json(response);
+    const response = await soapService.callSoapMethod();
+
+    return true;
+    // req.body.method,
+    // req.body.args
+    // ();
+    // res.json(response);
   } catch (err) {
     next(err);
   }
 });
 
+// Da cambiare coi metodi espoti dai servizi SOAP di Antonino
 
-    // Da cambiare coi metodi espoti dai servizi SOAP di Antonino
-
-router.post("/products/add-product", async (req, res) => {
+router.post("/products/add-quantity", async (req, res, next) => {
   try {
-
-    const method = null;
+    const method = "IncreaseQuantity";
     const response = await soapService.callSoapMethod(method, req.body.args);
     res.json(response);
   } catch (err) {
@@ -35,9 +37,18 @@ router.post("/products/add-product", async (req, res) => {
   }
 });
 
-router.post("/products/remove-product", async (req, res) => {
+router.post("/products/remove-quantity", async (req, res, next) => {
   try {
-    const method = null;
+    const method = "DecreaseQuantity";
+    const response = await soapService.callSoapMethod(method, req.body.args);
+    res.json(response);
+  } catch (err) {
+    next(err);
+  }
+});
+router.post("/products/add-product", async (req, res, next) => {
+  try {
+    const method = "AddProduct";
     const response = await soapService.callSoapMethod(method, req.body.args);
     res.json(response);
   } catch (err) {

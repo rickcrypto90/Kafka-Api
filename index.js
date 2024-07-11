@@ -7,9 +7,9 @@ import soap from "soap";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import { PORT, SOAP_URL } from "./config/dev.js";
 import KafkaConsumer from "./services/kafkaService.js";
-
 const app = express();
 
+// MIDDELWARE
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -22,6 +22,8 @@ app.use(
   })
 );
 app.use(errorHandler);
+
+
 
 let server = null;
 let consumer = null;
@@ -39,9 +41,26 @@ async function initKafkaConsumer() {
 }
 
 async function initSoapClient() {
+  const wsdlOptions = {
+    overrideRootElement: {
+      namespace: "xmlns:soapenv",
+      xmlnsAttributes: [
+        {
+          name: "xmlns:soapenv",
+          value: "http://schemas.xmlsoap.org/soap/envelope/",
+        },
+        {
+          name: "xmlns:soap",
+          value: "http://example.com/soap-web-service",
+        },
+      ],
+    },
+    envelopeKey: "soapenv",
+    xmlKey: "$xml",
+  };
   try {
     soapClient = await soap.createClientAsync(SOAP_URL, {
-      forceSoap12Headers: false,
+      wsdl_options: wsdlOptions,
     });
 
     const description = soapClient.describe();
@@ -50,6 +69,18 @@ async function initSoapClient() {
       "SOAP service description:",
       JSON.stringify(description, null, 2)
     );
+
+    soapClient.on("request", (xml) => {
+      console.log("SOAP request:", xml);
+    });
+
+    soapClient.on("error", (message) => {
+      console.log("SOAP message:", message);
+    });
+
+    soapClient.on("response", (xml) => {
+      console.log("SOAP response:", xml);
+    });
 
     console.log("SOAP client initialized");
   } catch (error) {
